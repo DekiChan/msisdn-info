@@ -6,6 +6,7 @@ use App\Msisdn\MsisdnService;
 use PHPUnit\Framework\TestCase;
 use libphonenumber\PhoneNumberUtil;
 use App\Msisdn\Exceptions\InvalidMsisdnException;
+use libphonenumber\PhoneNumberToCarrierMapper;
 
 class MsisdnServiceTest extends TestCase
 {
@@ -16,7 +17,9 @@ class MsisdnServiceTest extends TestCase
         parent::setUp();
 
         $phoneUtil = PhoneNumberUtil::getInstance();
-        $this->_msisdnService = new MsisdnService($phoneUtil);
+        $mapper = PhoneNumberToCarrierMapper::getInstance();
+
+        $this->_msisdnService = new MsisdnService($phoneUtil, $mapper);
     }
 
 
@@ -25,9 +28,26 @@ class MsisdnServiceTest extends TestCase
     {
         $msisdn = '+38640123456';
 
-        $returned = $this->_msisdnService->parse($msisdn);
+        $result = $this->_msisdnService->parse($msisdn);
 
-        $this->assertEquals($this->_msisdnService, $returned);
+        $this->assertEquals($this->_msisdnService, $result);
+    }
+
+    /** @test */
+    public function parse_valid_msisdn_returns_correct_result()
+    {
+        $msisdn = '+38640123456';
+
+        $result = $this->_msisdnService->parse($msisdn)->toArray();
+
+        $expectedResult = [
+            'mno_identifier' => 'A1',
+            'country_code' => 386,
+            'country_identifier' => 'SI',
+            'subscriber_number' => '123456',
+        ];
+
+        $this->assertEquals($expectedResult, $result);
     }
 
     /** @test */

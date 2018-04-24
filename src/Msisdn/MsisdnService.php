@@ -4,16 +4,26 @@ namespace App\Msisdn;
 
 use libphonenumber\PhoneNumberUtil;
 use App\Msisdn\Exceptions\InvalidMsisdnException;
+use libphonenumber\PhoneNumberToCarrierMapper;
+use libphonenumber\PhoneNumberFormat;
 
 class MsisdnService implements IMsisdnService
 {
     private $_msisdn;
 
     private $_phoneNumberUtil;
+    private $_phoneNumber;
 
-    public function __construct(PhoneNumberUtil $util)
+    private $_phoneToCarrierMapper;
+
+    private $_countryIdentifier;
+    private $_mnoIdentifier;
+    private $_subscriberNumber;
+
+    public function __construct(PhoneNumberUtil $util, PhoneNumberToCarrierMapper $mapper)
     {
         $this->_phoneNumberUtil = $util;
+        $this->_phoneToCarrierMapper = $mapper;
     }
 
     /**
@@ -29,7 +39,13 @@ class MsisdnService implements IMsisdnService
     public function parse(string $msisdn): IMsisdnService
     {
         $this->saveAsE164($msisdn);
+
+        $this->_phoneNumber = $this->_phoneNumberUtil->parse($this->_msisdn);
         
+        $this->extractCountryIdentifier();
+        $this->extractMnoIdentifier();
+        $this->extractSubscriberNumber();
+
         return $this;
     }
 
@@ -76,6 +92,50 @@ class MsisdnService implements IMsisdnService
     }
 
     /**
+     * Extracts country identifier and writes it to _countryIdentifier prop
+     * 
+     * @return void
+     */
+    protected function extractCountryIdentifier()
+    {
+        $this->_countryIdentifier
+            = $this->_phoneNumberUtil->getRegionCodeForNumber($this->_phoneNumber);
+    }
+
+    /**
+     * Finds MNO identifier (name) and writes it to _mnoIdentifier prop
+     * 
+     * @return void
+     */
+    protected function extractMnoIdentifier()
+    {
+        $this->_mnoIdentifier
+            = $this->_phoneToCarrierMapper->getNameForNumber($this->_phoneNumber, 'en');
+    }
+
+    /**
+     * Extracts subscriber number (removes country and carrier codes) and
+     * writes it to _subscriberNumber prop.
+     * 
+     * @return void
+     */
+    protected function extractSubscriberNumber()
+    {
+        // international code will give format (whitespace is significant):
+        // "+<country_code> <carrier_code> <anything else>"
+        $intl = $this->_phoneNumberUtil->format($this->_phoneNumber, PhoneNumberFormat::INTERNATIONAL);
+        $intlSplit = explode(' ', $intl);
+        $prefix = $intlSplit[0].$intlSplit[1];
+
+        // escape the '+' sign for regex
+        $prefixRe = '\\'.$prefix;
+
+        // will replace only first occurence
+        $this->_subscriberNumber 
+            = preg_replace('/'.$prefixRe.'/', '', $this->_msisdn, 1);
+    }
+
+    /**
      * Returns parsed msisdn values as array.
      *
      * @return array
@@ -83,8 +143,10 @@ class MsisdnService implements IMsisdnService
     public function toArray(): array
     {
         return [
-            'parsed' => true,
-            'msisdn' => $this->_msisdn,
+            'mno_identifier' => $this->_mnoIdentifier,
+            'country_code' => $this->_phoneNumber->getCountryCode(),
+            'country_identifier' => $this->_countryIdentifier,
+            'subscriber_number' => $this->_subscriberNumber,
         ];
     }
 }

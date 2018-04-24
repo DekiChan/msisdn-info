@@ -30,3 +30,6 @@ services:
 
     libphonenumber\PhoneNumberUtil:
         factory: 'libphonenumber\PhoneNumberUtil::getInstance'
+    
+    libphonenumber\PhoneNumberToCarrierMapper:
+        factory: 'libphonenumber\PhoneNumberToCarrierMapper::getInstance'
