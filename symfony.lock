@@ -1,4 +1,10 @@
 {
+    "giggsey/libphonenumber-for-php": {
+        "version": "8.9.4"
+    },
+    "giggsey/locale": {
+        "version": "1.5"
+    },
     "psr/cache": {
         "version": "1.0.1"
     },

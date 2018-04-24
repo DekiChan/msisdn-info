@@ -2,9 +2,16 @@
 
 namespace App\Msisdn;
 
+use libphonenumber\PhoneNumberUtil;
+
 class MsisdnService implements IMsisdnService
 {
     private $_msisdn;
+    private $_phoneNumberUtil;
+
+    public function __construct(PhoneNumberUtil $util) {
+        $this->_phoneNumberUtil = $util;
+    }
 
     public function parse(string $msisdn): IMsisdnService
     {
