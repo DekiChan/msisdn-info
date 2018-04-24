@@ -51,10 +51,40 @@ class MsisdnServiceTest extends TestCase
     }
 
     /** @test */
-    public function parse_invalid_msisdn_throws_InvaliMsisdnException()
+    public function parse_msisdn_without_plus_prefix_returns_correct_result()
+    {
+        $msisdn = '38640123456';
+
+        $result = $this->_msisdnService->parse($msisdn)->toArray();
+
+        $expectedResult = [
+            'mno_identifier' => 'A1',
+            'country_code' => 386,
+            'country_identifier' => 'SI',
+            'subscriber_number' => '123456',
+        ];
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    /** 
+     * @test 
+     * @dataProvider invalidMsisdnProvider
+     */
+    public function parse_invalid_msisdn_throws_InvaliMsisdnException($msisdn)
     {
         $this->expectException(InvalidMsisdnException::class);
-        $invalidMsisdn = '-xxx3443553465';
-        $this->_msisdnService->parse($invalidMsisdn);
+        $this->_msisdnService->parse($msisdn);
+    }
+
+    public function invalidMsisdnProvider()
+    {
+        return [
+            ['-xxx3443553465'], // invalid characters
+            ['123456'], // too short
+            ['1234567890123456'], // too long
+            ['99940123456'], // inexistent country code
+            ['38629123456'], // inexistent MNO
+        ];
     }
 }

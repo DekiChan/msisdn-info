@@ -6,6 +6,7 @@ use libphonenumber\PhoneNumberUtil;
 use App\Msisdn\Exceptions\InvalidMsisdnException;
 use libphonenumber\PhoneNumberToCarrierMapper;
 use libphonenumber\PhoneNumberFormat;
+use libphonenumber\NumberParseException;
 
 class MsisdnService implements IMsisdnService
 {
@@ -40,7 +41,13 @@ class MsisdnService implements IMsisdnService
     {
         $this->saveAsE164($msisdn);
 
-        $this->_phoneNumber = $this->_phoneNumberUtil->parse($this->_msisdn);
+        try {
+            $this->_phoneNumber 
+                = $this->_phoneNumberUtil->parse($this->_msisdn);
+        } catch (NumberParseException $e) {
+            $msg = $e->getMessage();
+            throw new InvalidMsisdnException("Unable to parse provided MSISDN: $msg");
+        }
         
         $this->extractCountryIdentifier();
         $this->extractMnoIdentifier();
@@ -59,7 +66,7 @@ class MsisdnService implements IMsisdnService
     protected function saveAsE164(string $msisdn)
     {
         if (!$this->isValid($msisdn)) {
-            throw new InvalidMsisdnException;
+            throw new InvalidMsisdnException('Format not ITU-T E.164');
         }
 
         $this->_msisdn = $this->toE164($msisdn);
@@ -111,6 +118,11 @@ class MsisdnService implements IMsisdnService
     {
         $this->_mnoIdentifier
             = $this->_phoneToCarrierMapper->getNameForNumber($this->_phoneNumber, 'en');
+        
+        // let's trust the library and invalidate the result if MNO identifier not found
+        if ($this->_mnoIdentifier === '') {
+            throw new InvalidMsisdnException('Unknown mobile network operator.');
+        }
     }
 
     /**
