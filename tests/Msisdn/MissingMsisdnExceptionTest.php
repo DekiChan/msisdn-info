@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 use App\Msisdn\Exceptions\MissingMsisdnException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+/** @group unit */
 class MissingMsisdnExceptionTest extends TestCase
 {
     /** @test */

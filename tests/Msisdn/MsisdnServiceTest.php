@@ -8,6 +8,7 @@ use libphonenumber\PhoneNumberUtil;
 use App\Msisdn\Exceptions\InvalidMsisdnException;
 use libphonenumber\PhoneNumberToCarrierMapper;
 
+/** @group unit */
 class MsisdnServiceTest extends TestCase
 {
     private $_msisdnService;

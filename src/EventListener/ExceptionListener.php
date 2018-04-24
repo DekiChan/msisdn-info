@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Exceptions\ResponsableException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Custom implementation of response handling. 
@@ -47,10 +48,13 @@ class ExceptionListener
         if ($exception instanceof ResponsableException) {
             $event->setResponse($exception->toJsonResponse());
             return;
+        } elseif ($exception instanceof NotFoundHttpException) {
+            $payload = ['message' => "Oops, requested resource doesn't exist."];
+            $statusCode = 404;
         }
         
-        $payload = $this->_defaultPayload;
-        $statusCode = $this->_defaultStatusCode;
+        $payload = $payload ?? $this->_defaultPayload;
+        $statusCode = $statusCode ?? $this->_defaultStatusCode;
 
         $response = new JsonResponse($payload, $statusCode);
 
