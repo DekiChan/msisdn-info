@@ -45,8 +45,7 @@ class MsisdnService implements IMsisdnService
             $this->_phoneNumber 
                 = $this->_phoneNumberUtil->parse($this->_msisdn);
         } catch (NumberParseException $e) {
-            $msg = $e->getMessage();
-            throw new InvalidMsisdnException("Unable to parse provided MSISDN: $msg");
+            throw InvalidMsisdnException::Unparsable($e);
         }
         
         $this->extractCountryIdentifier();
@@ -66,7 +65,7 @@ class MsisdnService implements IMsisdnService
     protected function saveAsE164(string $msisdn)
     {
         if (!$this->isValid($msisdn)) {
-            throw new InvalidMsisdnException('Format not ITU-T E.164');
+            throw InvalidMsisdnException::E164Violation();
         }
 
         $this->_msisdn = $this->toE164($msisdn);
@@ -121,7 +120,7 @@ class MsisdnService implements IMsisdnService
         
         // let's trust the library and invalidate the result if MNO identifier not found
         if ($this->_mnoIdentifier === '') {
-            throw new InvalidMsisdnException('Unknown mobile network operator.');
+            throw InvalidMsisdnException::InvalidMNO();
         }
     }
 
