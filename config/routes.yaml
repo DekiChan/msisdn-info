@@ -1,3 +1,5 @@
-index:
+transform:
    path: /transform
    controller: App\Controller\MsisdnController::transform
+   defaults:
+      _format: json

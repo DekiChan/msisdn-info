@@ -33,3 +33,9 @@ services:
     
     libphonenumber\PhoneNumberToCarrierMapper:
         factory: 'libphonenumber\PhoneNumberToCarrierMapper::getInstance'
+
+    # Custom exceptions handling
+    # See https://symfony.com/doc/current/event_dispatcher.html#creating-an-event-listener
+    App\EventListener\ExceptionListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.exception }
