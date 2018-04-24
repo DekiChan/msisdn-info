@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\Util;
+namespace App\Tests\Msisdn;
 
 use App\Msisdn\MsisdnService;
 use PHPUnit\Framework\TestCase;
